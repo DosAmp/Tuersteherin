@@ -27,12 +27,13 @@ class Tuersteherin {
     private $simpleKeywords = array();
 
     private $searchEngines = array(
-        '!google' => 'http://www.google.de/search?q=',
-        '!googlepic' => 'http://www.google.de/images?q=',
+        '!google' => 'https://www.google.de/search?q=',
+        '!googlepic' => 'https://www.google.de/images?q=',
         '!lmgtfy' => 'http://lmgtfy.com/?q=',
-        '!wikipedia' => 'http://de.wikipedia.org/w/index.php?title=Spezial:Suche&search=',
-        '!wolfram' => 'http://www.wolframalpha.com/input/?i=',
+        '!wikipedia' => 'https://de.wikipedia.org/w/index.php?title=Spezial:Suche&search=',
+        '!wolfram' => 'https://www.wolframalpha.com/input/?i=',
         '!youtube' => 'http://www.youtube.com/results?search_query=',
+        '!twitter' => 'https://twitter.com/search/realtime?q=',
     );
 
     function Tuersteherin() {
@@ -80,7 +81,8 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/(https?:\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\-\.]*(\?\S+)?)?)?)/', $this, 'grepURLTitle');
         //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'http:\/\/(www\.)?youtube\.com\/watch\?v=([\w\_\-]+)', $this, 'printYTInfo');
 
-        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $this, 'simpleKeywords');
+        // without any keywords we're much better off without this
+        //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $this, 'simpleKeywords');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!.+\s', $this, 'searchEngine');
 
         $irc->connect(self::Server, self::Port);
