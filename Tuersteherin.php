@@ -364,13 +364,13 @@ class Tuersteherin {
         preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?chf/i", $ircdata->message, $value);
         $chf = strtr($value['value'], ',', '.');
         $context = stream_context_create(array('http' => array('timeout' => 1)));
-        // taken from http://stackoverflow.com/a/7194425
         $input = file_get_contents(
             'http://www.google.com/ig/calculator?hl=en&q='.
             $chf.'CHF%3D%3FEUR', 0, $context
         );
-        $json = json_decode($input, true);
-        if($json && empty($json['error']) {
+        // this is not real JSON :o
+        $json = json_decode(preg_replace('/([a-z]+):/', '"\\1":', $input), true);
+        if($json && empty($json['error'])) {
             $eur = floatval($json['rhs']);
             if ($chf == 1) {
                 $msg = $chf.' CHF ist exakt '.number_format($eur, 2, ',', '.').' EUR';
