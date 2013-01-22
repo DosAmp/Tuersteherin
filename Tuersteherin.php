@@ -32,7 +32,7 @@ class Tuersteherin {
         '!lmgtfy' => 'http://lmgtfy.com/?q=',
         '!wikipedia' => 'https://de.wikipedia.org/w/index.php?title=Spezial:Suche&search=',
         '!wolfram' => 'https://www.wolframalpha.com/input/?i=',
-        '!youtube' => 'http://www.youtube.com/results?search_query=',
+        '!youtube' => 'https://www.youtube.com/results?search_query=',
         '!twitter' => 'https://twitter.com/search/realtime?q=',
     );
 
@@ -69,6 +69,7 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!popp\s', $this, 'Popp');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!dice(\s\d|$)', $this, 'Dice');
         //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!?ping(\?|!|\.)?$', $this, 'Ping');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!airdroid', $this, 'AirdroidPasswordReminder');
 
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?chf/i', $this, 'CHFtoEUR');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?euro2kaffee/i', $this, 'euro2kaffee');
@@ -81,7 +82,7 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/(https?:\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\-\.]*(\?\S+)?)?)?)/', $this, 'grepURLTitle');
         //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'http:\/\/(www\.)?youtube\.com\/watch\?v=([\w\_\-]+)', $this, 'printYTInfo');
 
-        // without any keywords we're much better off without this
+        // without any keywords, we're much better off without this
         //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $this, 'simpleKeywords');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!.+\s', $this, 'searchEngine');
 
@@ -325,10 +326,10 @@ class Tuersteherin {
         //if($ircdata->messageex[0] == "!8ball" && rand(0, 3) == 0 && $irc->isOpped($ircdata->channel)) {
         //    $irc->kick($ircdata->channel, $ircdata->nick, ':o');
         //} else {
-            $question = $this->_message_line($ircdata->message);
-            $answer = IRC_BOLD.$answers[rand(0, count($answers)-1)];
-            $msg = '<'.$ircdata->nick.'>'.(empty($question)?'':' '.$question).' '.$answer;
-            $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+        $question = $this->_message_line($ircdata->message);
+        $answer = IRC_BOLD.$answers[rand(0, count($answers)-1)];
+        $msg = '<'.$ircdata->nick.'>'.(empty($question)?'':' '.$question).' '.$answer;
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
         //}
     }
 
@@ -499,7 +500,7 @@ class Tuersteherin {
         $title = $sxml->title;
         $author = $sxml->author->name;
 
-
+        // epic re-use :P
         $duration = $sxml->children('http://search.yahoo.com/mrss/');
         $duration = $duration->children('http://gdata.youtube.com/schemas/2007');
         $duration = $duration->duration->attributes()->seconds;
@@ -508,8 +509,20 @@ class Tuersteherin {
         $sec = sprintf("%02d", $duration % 60);
 
         $msg = IRC_BOLD."Titel: ".IRC_NORMAL.$title." | ".
-               IRC_BOLD."Laenge: ".IRC_NORMAL.$min.':'.$sec." | ".
+               IRC_BOLD."Länge: ".IRC_NORMAL.$min.':'.$sec." | ".
                IRC_BOLD."Uploader: ".IRC_NORMAL.$author;
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+    }
+
+    function AirdroidPasswordReminder(&$irc, &$ircdata) {
+        // Every randomizer script needs a good old-fashioned placeholder. -JK
+        $answers = array(
+            'Wie lautet DERPY_HOOVESs AirDroid-Passwort?',
+            'Was war DERPY_HOOVESs AirDroid-Passwort gleich noch mal?',
+            'Das tolle an AirDroid ist, dass DERPY_HOOVES ständig sein Passwort vergisst.',
+            'Ha! DERPY_HOOVES hat schon wieder sein AirDroid-Passwort vergessen!',
+        );
+        $msg = str_replace('DERPY_HOOVES', $ircdata->nick, $answers[rand(0, count($answers) - 1)]);
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
     }
 
