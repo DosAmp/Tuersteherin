@@ -364,15 +364,14 @@ class Tuersteherin {
         preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?chf/i", $ircdata->message, $value);
         $chf = strtr($value['value'], ',', '.');
         $context = stream_context_create(array('http' => array('timeout' => 1)));
-        // TODO 404 Service out of business
-        /*$eur = file_get_contents(
-            "http://www.multimolti.com/apps/currencyapi/calculator.php".
-            "?original=CHF&target=EUR&value=".$chf,
-            0,
-            $context
-        );*/
-        $eur = FALSE;
-        if($eur) {
+        // taken from http://stackoverflow.com/a/7194425
+        $input = file_get_contents(
+            'http://www.google.com/ig/calculator?hl=en&q='.
+            $chf.'CHF%3D%3FEUR', 0, $context
+        );
+        $json = json_decode($input, true);
+        if($json && empty($json['error']) {
+            $eur = floatval($json['rhs']);
             if ($chf == 1) {
                 $msg = $chf.' CHF ist exakt '.number_format($eur, 2, ',', '.').' EUR';
             } else {
