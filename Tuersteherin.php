@@ -51,7 +51,6 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_WHO, '.*', $this, 'setUUID');
         $irc->registerActionhandler(SMARTIRC_TYPE_QUIT, '.*', $this, 'removeUUID');
 
-
         $irc->registerActionhandler(SMARTIRC_TYPE_QUERY, '^!login', $this, 'login');
         $irc->registerActionhandler(SMARTIRC_TYPE_QUERY, '^!logout$', $this, 'logout');
         $irc->registerActionhandler(SMARTIRC_TYPE_QUERY, '^!admins$', $this, 'admins');
@@ -296,7 +295,7 @@ class Tuersteherin {
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, rand(1, $max));
     }
 
- function grepURLTitle(&$irc, &$ircdata) {
+    function grepURLTitle(&$irc, &$ircdata) {
         preg_match("@(?<url>https?://([-\w\.]+)+(:\d+)?(/([\w/_\-\.]*(\?\S+)?)?)?)@", $ircdata->message, $url);
 
         $url = $url['url'];
