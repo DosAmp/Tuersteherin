@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+require_once 'System.php';
 include("SmartIRC.php");
 
 define("IRC_BOLD", "\002");
@@ -11,32 +12,27 @@ class Tuersteherin {
 
     private $SmartIRC;
 
-    const Nickname = "Tuersteherin";
-    const Realname = "Heiliges weibliches Wesen des #whf, Version 2.0";
-    
-    const Server   = "irc.rizon.net";
-    const Port     = 6667;
+    const Nickname = "Phai";
+    const Realname = "Botviech 2.0 Beta";
+
+    const Server = "irc.rizon.net";
+    const Port = 6667;
     const Channels = '#winhistory';
 
     const IdleTimeout = 600;
-   
+
     private $LoggedIn = array();
     private $idleTime = array();
     private $UserUIDs = array();
-
-    private $simpleKeywords = array(
-        'eudar' => 'eudaR :o!',
-        'metal' => 'metal \m/ :o',
-        'hitler' => 'Commodore-Freak !_! *highlight* euda :>',
-        'bier' => 'biertitten :>',
-        'dagegen' => 'Ich bin für Kicken! :o'
-    );
+    private $simpleKeywords = array();
 
     private $searchEngines = array(
         '!google' => 'http://www.google.de/search?q=',
         '!googlepic' => 'http://www.google.de/images?q=',
         '!lmgtfy' => 'http://lmgtfy.com/?q=',
         '!wikipedia' => 'http://de.wikipedia.org/w/index.php?title=Spezial:Suche&search=',
+        '!wolfram' => 'http://www.wolframalpha.com/input/?i=',
+        '!youtube' => 'http://www.youtube.com/results?search_query=',
     );
 
     function Tuersteherin() {
@@ -67,16 +63,23 @@ class Tuersteherin {
 
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/^(hallo|huhu|hi)\s'.self::Nickname.'/i', $this, 'Huhu');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!toblerone(\s|$)', $this, 'Toblerone');
-        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!8ball[1]?(\s|$)', $this, 'EightBall');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!decide[1]?(\s|$)', $this, 'EightBall');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!say\s', $this, 'Say');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!sayme\s', $this, 'SayMe');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!popp\s', $this, 'Popp');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!dice(\s\d|$)', $this, 'Dice');
-        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!?ping(\?|!|\.)?$', $this, 'Ping');
+        //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!?ping(\?|!|\.)?$', $this, 'Ping');
+
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?chf/i', $this, 'CHFtoEUR');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?euro2kaffee/i', $this, 'euro2kaffee');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?euro2hitler/i', $this, 'euro2hitler');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?euro2mate/i', $this, 'euro2mate');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?chf2mate/i', $this, 'chf2mate');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?kaffeetassen/i', $this, 'kaffeetassen');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!(time|date)(\s|$)', $this, 'Time');
+
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/(https?:\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\-\.]*(\?\S+)?)?)?)/', $this, 'grepURLTitle');
-        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'http:\/\/(www\.)?youtube\.com\/watch\?v=([\w\_\-]+)', $this, 'printYTInfo');
+        //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'http:\/\/(www\.)?youtube\.com\/watch\?v=([\w\_\-]+)', $this, 'printYTInfo');
 
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $this, 'simpleKeywords');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '!.+\s', $this, 'searchEngine');
@@ -107,20 +110,20 @@ class Tuersteherin {
             }
         } else {
             for($i=3;$i>0;$i--) {
-                $this->idleTime[$ircdata->channel][$uuid][$i] = 
+                $this->idleTime[$ircdata->channel][$uuid][$i] =
                     $this->idleTime[$ircdata->channel][$uuid][$i-1];
             }
         }
         $timestamps = &$this->idleTime[$ircdata->channel][$uuid];
         $timestamps[0] = microtime(true);
-        
-# I personally don't want every user to be autovoiced.
-/*        if(self::IdleTimeout != 0 && !$irc->isVoiced($ircdata->channel, $ircdata->nick)) { 
+
+        # I personally don't want every user to be autovoiced.
+        /* if(self::IdleTimeout != 0 && !$irc->isVoiced($ircdata->channel, $ircdata->nick)) {
             $irc->voice($ircdata->channel, $ircdata->nick);
         }*/
-        
+
         if($timestamps[0] - $timestamps[3] < 2) {
-            $irc->kick($ircdata->channel, $ircdata->nick, "Fluten des Kanals verboten!"); 
+            $irc->kick($ircdata->channel, $ircdata->nick, "Fluten des Kanals verboten!");
         }
     }
 
@@ -149,12 +152,12 @@ class Tuersteherin {
 
                 if(microtime(true) - $timestamp > self::IdleTimeout) {
                     $idleList[] = $user;
-                }   
+                }
             }
 
-# -v them if idling. Since they don't have +v (in my chan), it's quite pointless.
+            # -v them if idling. Since they don't have +v (in my chan), it's quite pointless.
             if(count($idleList) > 0) {
-#                $irc->mode($channel, '-'.str_repeat('v', count($idleList)).' '.implode(' ', $idleList));
+                # $irc->mode($channel, '-'.str_repeat('v', count($idleList)).' '.implode(' ', $idleList));
             }
         }
     }
@@ -164,7 +167,7 @@ class Tuersteherin {
         $this->UserUIDs[$uuid] = $ircdata->message;
     }
 
-    function setUUID(&$irc, &$ircdata) { 
+    function setUUID(&$irc, &$ircdata) {
         $raw_msg = &$ircdata->rawmessageex;
         if($raw_msg[1] == SMARTIRC_RPL_WHOREPLY) {
             $uuid = $raw_msg[4].'@'.$raw_msg[5];
@@ -172,7 +175,7 @@ class Tuersteherin {
         }
     }
 
-    function removeUUID(&$irc, &$ircdata) { 
+    function removeUUID(&$irc, &$ircdata) {
         $uuid = $this->createUUID($ircdata);
         unset($this->UserUIDs[$uuid]);
         foreach($this->idleTime as $channel=>$user) {
@@ -233,7 +236,7 @@ class Tuersteherin {
         $user = $ircdata->messageex[1];
         $pass = $ircdata->messageex[2];
         $Admins = parse_ini_file("Admins.txt");
-        
+
         if(isset($Admins[$user]) && sha1($pass) == $Admins[$user]) {
             $uuid = $this->createUUID($ircdata);
             $this->LoggedIn[$uuid] = true;
@@ -246,7 +249,6 @@ class Tuersteherin {
         return isset($this->LoggedIn[$uuid]) ? $this->LoggedIn[$uuid] : false;
     }
 
-    
     function admins(&$irc, &$ircdata) {
         if(!$this->checkLogin($ircdata->nick)) return;
         $irc->message(SMARTIRC_TYPE_QUERY, $ircdata->nick, "Logged in admins:");
@@ -256,7 +258,7 @@ class Tuersteherin {
             }
         }
     }
-    
+
     function logout(&$irc, &$ircdata) { //FIXME funktioniert nicht bei quit
         if($this->checkLogin($ircdata->nick)) {
             unset($this->LoggedIn[$ircdata->nick]);
@@ -267,7 +269,7 @@ class Tuersteherin {
     function Huhu(&$irc, &$ircdata) {
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $ircdata->messageex[0].' '.$ircdata->nick);
     }
-    
+
     function Toblerone(&$irc, &$ircdata) {
         $nick = $this->_message_line($ircdata->message, $ircdata->nick);
         $irc->message(SMARTIRC_TYPE_ACTION, $ircdata->channel, 'gibt '.$nick.' eine Toblerone!');
@@ -294,40 +296,39 @@ class Tuersteherin {
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, rand(1, $max));
     }
 
+ function grepURLTitle(&$irc, &$ircdata) {
+        preg_match("@(?<url>https?://([-\w\.]+)+(:\d+)?(/([\w/_\-\.]*(\?\S+)?)?)?)@", $ircdata->message, $url);
+
+        $url = $url['url'];
+        if(!($httpSocket = @fopen($url, 'r'))) {
+            return;
+        }
+        stream_set_timeout($httpSocket, 1);
+        $data = stream_get_contents($httpSocket, 2048);
+
+        if(preg_match("/\<title\>(?<header>.*)\<\/title\>/i", $data, $tags)) {
+            $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, 'Link-Titel: '.IRC_UNDERLINE.html_entity_decode($tags['header']));
+        }
+        fclose($httpSocket);
+    }
+
     function EightBall(&$irc, &$ircdata) {
+        // Because rand() works with extreme gloria on Windows. Not.
         $answers = array(
-            'Soweit ich sehe, ja.',
-            'Bestimmt.',
-            'Wurde so entschieden.',
-            'Ziemlich wahrscheinlich.',
-            'Sieht danach aus.',
-            'Alle Anzeichen weisen darauf hin.',
-            'Ohne jeden Zweifel.',
             'Ja.',
-            'Ja - definitiv.',
-            'Darauf kannst du dich verlassen.',
-
-            'Keine genaue Antwort, probier es nochmals.',
-            'Frage nochmals.',
-            'Sage ich dir besser noch nicht.',
-            'Kann ich jetzt noch nicht sagen.',
-            'Konzentriere dich und frage erneut.',
-
-            'Wuerde mich nicht darauf verlassen.',
-            'Meine Antwort ist nein.',
-            'Meine Quellen sagen nein.',
-            'Sieht nicht so gut aus.',
-            'Sehr zweifelhaft.',
+            'Nein.',
+            'Nein.',
+            'Ja.',
         );
 
-        if($ircdata->messageex[0] == "!8ball" && rand(0, 3) == 0 && $irc->isOpped($ircdata->channel)) {
-            $irc->kick($ircdata->channel, $ircdata->nick, ':o');
-        } else {
+        //if($ircdata->messageex[0] == "!8ball" && rand(0, 3) == 0 && $irc->isOpped($ircdata->channel)) {
+        //    $irc->kick($ircdata->channel, $ircdata->nick, ':o');
+        //} else {
             $question = $this->_message_line($ircdata->message);
             $answer = IRC_BOLD.$answers[rand(0, count($answers)-1)];
             $msg = '<'.$ircdata->nick.'>'.(empty($question)?'':' '.$question).' '.$answer;
             $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
-        }
+        //}
     }
 
     function Ping(&$irc, &$ircdata) {
@@ -337,7 +338,7 @@ class Tuersteherin {
     function Time(&$irc, &$ircdata) {
         $irc->message(
             SMARTIRC_TYPE_CHANNEL, $ircdata->channel,
-            "Aktuelle Zeit auf dem Server: ".date("l, d. F, H:i:s")." Uhr"
+            "Man erzählt sich, es sei ".date("l, d. F, H:i:s")." Uhr"
         );
     }
 
@@ -355,41 +356,139 @@ class Tuersteherin {
                                 urlencode($this->_message_line($ircdata->message));
             $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, '-> '.$query);
         }
-    } 
+    }
 
     function CHFtoEUR(&$irc, &$ircdata) {
         preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?chf/i", $ircdata->message, $value);
         $chf = strtr($value['value'], ',', '.');
-        $context = stream_context_create(array('http' => array('timeout' => 1))); 
-        $eur = file_get_contents(
+        $context = stream_context_create(array('http' => array('timeout' => 1)));
+        // TODO 404 Service out of business
+        /*$eur = file_get_contents(
             "http://www.multimolti.com/apps/currencyapi/calculator.php".
             "?original=CHF&target=EUR&value=".$chf,
             0,
             $context
-        );
-        if($eur !== false) {
-            $msg = $chf.' CHF sind exakt '.number_format($eur, 2, ',', '.').' EUR';
+        );*/
+        $eur = FALSE;
+        if($eur) {
+            if ($chf == 1) {
+                $msg = $chf.' CHF ist exakt '.number_format($eur, 2, ',', '.').' EUR';
+            } else {
+                $msg = $chf.' CHF sind exakt '.number_format($eur, 2, ',', '.').' EUR';
+            }
         } else {
-            $eur = $chf * 0.66; /* leider existiert kein offizieller Durchschnitt */
-            $msg = $chf.' CHF sind ungefaehr '.number_format($eur, 2, ',', '.').' EUR';
+            // leider existiert kein offizieller Durchschnitt; Stand 22.1.2013
+            $eur = $chf * 0.81;
+            if ($chf == 1) {
+                $msg = $chf.' CHF ist ungefähr '.number_format($eur, 2, ',', '.').' EUR';
+            } else {
+                $msg = $chf.' CHF sind ungefähr '.number_format($eur, 2, ',', '.').' EUR';
+            }
         }
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
     }
 
-    function grepURLTitle(&$irc, &$ircdata) {
-        preg_match("@(?<url>https?://([-\w\.]+)+(:\d+)?(/([\w/_\-\.]*(\?\S+)?)?)?)@", $ircdata->message, $url);
+     function euro2hitler(&$irc, &$ircdata) {
+        preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?euro2hitler/i", $ircdata->message, $value);
+        $input = strtr($value['value'], ',', '.');
 
-        $url = $url['url'];
-        if(!($httpSocket = @fopen($url, 'r'))) {
-            return;
+        if($input <= 4) {
+            $hitler = $input * 1000 / 80000000 / 5000000 / 0.000000000001;
+            if($input == 1) {
+                $msg = $input.' Euro ist exakt '.number_format($hitler, 2, ',', '.').' FemtoHitler';
+            } else {
+                $msg = $input.' Euro sind exakt '.number_format($hitler, 2, ',', '.').' FemtoHitler';
+            }
+        } else {
+            $hitler = $input / 80000000 / 5000000 / 0.000000000001;
+            if($input == 1) {
+                $msg = $input.' Euro ist exakt '.number_format($hitler, 2, ',', '.').' PicoHitler';
+            } else {
+                $msg = $input.' Euro sind exakt '.number_format($hitler, 2, ',', '.').' PicoHitler';
+            }
         }
-        stream_set_timeout($httpSocket, 1);
-        $data = stream_get_contents($httpSocket, 2048);
 
-        if(preg_match("/\<title\>(?<header>.*)\<\/title\>/i", $data, $tags)) {
-            $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, 'Link-Titel: '.IRC_UNDERLINE.$tags['header']);
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+    }
+
+    function euro2mate(&$irc, &$ircdata) {
+        preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?euro2mate/i", $ircdata->message, $value);
+        $input = strtr($value['value'], ',', '.');
+        $mate = $input / 0.84;
+
+        if($mate == 1) {
+            if($input == 1) {
+                $msg = $input.' Euro ist exakt '.number_format($mate, 2, ',', '.').' Flasche Mate';
+            } else {
+                $msg = $input.' Euro sind exakt '.number_format($mate, 2, ',', '.').' Flasche Mate';
+            }
+        } else {
+            if($input == 1) {
+                $msg = $input.' Euro ist exakt '.number_format($mate, 2, ',', '.').' Flaschen Mate';
+            } else {
+                $msg = $input.' Euro sind exakt '.number_format($mate, 2, ',', '.').' Flaschen Mate';
+            }
         }
-        fclose($httpSocket); 
+
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+    }
+
+    function chf2mate(&$irc, &$ircdata) {
+        preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?euro2mate/i", $ircdata->message, $value);
+        $input = strtr($value['value'], ',', '.');
+        $mate = $input / 2.2;
+
+        if($mate == 1) {
+            if($input == 1) {
+                $msg = $input.' CHF ist exakt '.number_format($mate, 2, ',', '.').' Flasche Mate';
+            } else {
+                $msg = $input.' CHF sind exakt '.number_format($mate, 2, ',', '.').' Flasche Mate';
+            }
+        } else {
+            if($input == 1) {
+                $msg = $input.' CHF ist exakt '.number_format($mate, 2, ',', '.').' Flaschen Mate';
+            } else {
+                $msg = $input.' CHF sind exakt '.number_format($mate, 2, ',', '.').' Flaschen Mate';
+            }
+        }
+
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+    }
+
+    function kaffeetassen(&$irc, &$ircdata) {
+        preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?kaffeetassen/i", $ircdata->message, $value);
+        $input = strtr($value['value'], ',', '.');
+        $eur = $input * 3.36;
+
+        if($input == 1) {
+            $msg = $input.' Kaffeetasse ist exakt '.number_format($eur, 2, ',', '.').' Euro';
+        } else {
+            $msg = $input.' Kaffeetassen sind exakt '.number_format($eur, 2, ',', '.').' EUR';
+        }
+
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+    }
+
+    function euro2kaffee(&$irc, &$ircdata) {
+        preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?eur2kaffee/i", $ircdata->message, $value);
+        $input = strtr($value['value'], ',', '.');
+        $kaffee = $input / 3.36;
+
+        if($kaffee == 1) {
+            if($input == 1) {
+                $msg = $input.' Euro ist exakt '.number_format($kaffee, 2, ',', '.').' Tasse Kaffee';
+            } else {
+                $msg = $input.' Euro sind exakt '.number_format($kaffee, 2, ',', '.').' Tasse Kaffee';
+            }
+        } else {
+            if($input == 1) {
+                $msg = $input.' Euro ist exakt '.number_format($mate, 2, ',', '.').' Tassen Kaffee';
+            } else {
+                $msg = $input.' Euro sind exakt '.number_format($mate, 2, ',', '.').' Tassen Kaffee';
+            }
+        }
+
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
     }
 
     function printYTInfo(&$irc, &$ircdata) {
