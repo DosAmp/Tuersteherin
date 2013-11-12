@@ -24,7 +24,8 @@ class Tuersteherin {
     private $LoggedIn = array();
     private $idleTime = array();
     private $UserUIDs = array();
-    private $simpleKeywords = array();
+    //private $simpleKeywords = array();
+    private $previousQuestion = array();
 
     private $searchEngines = array(
         '!google' => 'https://www.google.de/search?q=',
@@ -68,8 +69,8 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!sayme\s', $this, 'SayMe');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!popp\s', $this, 'Popp');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!dice(\s\d|$)', $this, 'Dice');
-        //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!?ping(\?|!|\.)?$', $this, 'Ping');
-        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!airdroid', $this, 'AirdroidPasswordReminder');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!?ping(\?|!|\.)?$', $this, 'Ping');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!password', $this, 'PasswordReminder');
 
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?chf/i', $this, 'CHFtoEUR');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/[-+]?[0-9]*[.,]?[0-9]+\s?euro2kaffee/i', $this, 'euro2kaffee');
@@ -80,7 +81,7 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!(time|date)(\s|$)', $this, 'Time');
 
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/(https?:\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\-\.]*(\?\S+)?)?)?)/', $this, 'grepURLTitle');
-        //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'http:\/\/(www\.)?youtube\.com\/watch\?v=([\w\_\-]+)', $this, 'printYTInfo');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'https?:\/\/(www\.)?youtube\.com\/watch\?v=([\w\_\-]+)', $this, 'printYTInfo');
 
         // without any keywords, we're much better off without this
         //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $this, 'simpleKeywords');
@@ -295,13 +296,15 @@ class Tuersteherin {
     function Dice(&$irc, &$ircdata) {
         $max = isset($ircdata->messageex[1]) ? $ircdata->messageex[1] : 6;
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, '*wuerfel*');
-        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, rand(1, $max));
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, mt_rand(1, $max));
     }
 
     function grepURLTitle(&$irc, &$ircdata) {
         preg_match("@(?<url>https?://([-\w\.]+)+(:\d+)?(/([\w/_\-\.]*(\?\S+)?)?)?)@", $ircdata->message, $url);
-
         $url = $url['url'];
+        // let printYTInfo handle that
+        if (preg_match("/https?:\/\/(www\.)?youtube\.com\/watch\?/", $url)) return;
+
         if(!($httpSocket = @fopen($url, 'r'))) {
             return;
         }
@@ -315,20 +318,26 @@ class Tuersteherin {
     }
 
     function EightBall(&$irc, &$ircdata) {
-        // Because rand() works with extreme gloria on Windows. Not.
         $answers = array(
             'Ja.',
-            'Nein.',
-            'Nein.',
-            'Ja.',
+            'Nein.'
         );
-
+        $insults = array(
+            'Ruhe.',
+            'Siehe oben.'
+        );
         //if($ircdata->messageex[0] == "!8ball" && rand(0, 3) == 0 && $irc->isOpped($ircdata->channel)) {
         //    $irc->kick($ircdata->channel, $ircdata->nick, ':o');
         //} else {
         $question = $this->_message_line($ircdata->message);
-        $answer = IRC_BOLD.$answers[rand(0, count($answers)-1)];
+        if (array_key_exists($ircdata->nick, $this->previousQuestion) && $this->previousQuestion[$ircdata->nick] == $question) {
+            $answer = IRC_BOLD.$insults[mt_rand(0, count($insults)-1)];
+        }
+        else {
+            $answer = IRC_BOLD.$answers[mt_rand(0, count($answers)-1)];
+        }
         $msg = '<'.$ircdata->nick.'>'.(empty($question)?'':' '.$question).' '.$answer;
+        if (!empty($question)) $this->previousQuestion[$ircdata->nick] = $question;
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
         //}
     }
@@ -493,7 +502,7 @@ class Tuersteherin {
     }
 
     function printYTInfo(&$irc, &$ircdata) {
-        preg_match('/http:\/\/(www\.)?youtube\.com\/watch\?v=(?<id>[\w\_\-]+)/', $ircdata->message, $yt);
+        preg_match('/https?:\/\/(www\.)?youtube\.com\/watch\?v=(?<id>[\w\_\-]+)/', $ircdata->message, $yt);
         $sxml = simplexml_load_file('http://gdata.youtube.com/feeds/api/videos/'.$yt['id']);
         if($sxml === false) return;
         $title = $sxml->title;
@@ -513,15 +522,15 @@ class Tuersteherin {
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
     }
 
-    function AirdroidPasswordReminder(&$irc, &$ircdata) {
+    function PasswordReminder(&$irc, &$ircdata) {
         // Every randomizer script needs a good old-fashioned placeholder. -JK
         $answers = array(
-            'Wie lautet DERPY_HOOVESs AirDroid-Passwort?',
-            'Was war DERPY_HOOVESs AirDroid-Passwort gleich noch mal?',
-            'Das tolle an AirDroid ist, dass DERPY_HOOVES ständig sein Passwort vergisst.',
-            'Ha! DERPY_HOOVES hat schon wieder sein AirDroid-Passwort vergessen!',
+            'Wie lautet FLASH_SENTRYs Passwort?',
+            'Was war FLASH_SENTRYs Passwort gleich noch mal?',
+            'Das tolle an Passwörtern ist, dass FLASH_SENTRY sie ständig vergisst.',
+            'Ha! FLASH_SENTRY hat schon wieder sein Passwort vergessen!'
         );
-        $msg = str_replace('DERPY_HOOVES', $ircdata->nick, $answers[rand(0, count($answers) - 1)]);
+        $msg = str_replace('FLASH_SENTRY', $ircdata->nick, $answers[mt_rand(0, count($answers) - 1)]);
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
     }
 
