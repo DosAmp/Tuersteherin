@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
-require_once 'System.php';
 include("SmartIRC.php");
 
 define("IRC_BOLD", "\002");
