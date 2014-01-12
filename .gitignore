@@ -1,0 +1,4 @@
+# Do not include SmartIRC library.
+# It can be downloaded from SF: http://sourceforge.net/projects/phpsmartirc/
+SmartIRC.php
+SmartIRC
