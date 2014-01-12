@@ -47,6 +47,7 @@ class Tuersteherin {
         $irc->setDebug(SMARTIRC_DEBUG_IRCMESSAGES);
 
         setlocale(LC_ALL, 'de_DE');
+        date_default_timezone_set('Europe/Berlin');
 
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $this, 'updateIdle');
         $irc->registerActionhandler(SMARTIRC_TYPE_NICKCHANGE, '.*', $this, 'updateUUID');
