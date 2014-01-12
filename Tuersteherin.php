@@ -371,25 +371,35 @@ class Tuersteherin {
     }
 
     function CHFtoEUR(&$irc, &$ircdata) {
+        static $convrate = 0.81;
+        static $lastupdate = -1;
+        static $exactrate = FALSE;
+
         preg_match("/(?<value>[-+]?[0-9]*[.,]?[0-9]+)\s?chf/i", $ircdata->message, $value);
         $chf = strtr($value['value'], ',', '.');
-        $context = stream_context_create(array('http' => array('timeout' => 1)));
-        $input = file_get_contents(
-            'http://www.google.com/ig/calculator?hl=en&q='.
-            $chf.'CHF%3D%3FEUR', 0, $context
-        );
-        // this is not real JSON :o
-        $json = json_decode(preg_replace('/([a-z]+):/', '"\\1":', $input), true);
-        if($json && empty($json['error'])) {
-            $eur = floatval($json['rhs']);
+
+        if (time() - $lastupdate >= 86400 || !$exactrate) {
+            $context = stream_context_create(array('http' => array('timeout' => 1)));
+            $input = file_get_contents('http://rate-exchange.appspot.com/currency?from=CHF&to=EUR', 0, $context);
+            $json = json_decode($input, TRUE);
+            if ($json && empty($json['err'])) {
+                $convrate = $json['rate'];
+                $lastupdate = time();
+                $exactrate = TRUE;
+            } else {
+                // better an approximated conversation rate than an outdated one
+                $convrate = 0.81;
+                $exactrate = FALSE;
+            }
+        }
+        $eur = $chf * $convrate;
+        if($exactrate) {
             if ($chf == 1) {
                 $msg = $chf.' CHF ist exakt '.number_format($eur, 2, ',', '.').' EUR';
             } else {
                 $msg = $chf.' CHF sind exakt '.number_format($eur, 2, ',', '.').' EUR';
             }
         } else {
-            // leider existiert kein offizieller Durchschnitt; Stand 22.1.2013
-            $eur = $chf * 0.81;
             if ($chf == 1) {
                 $msg = $chf.' CHF ist ungefähr '.number_format($eur, 2, ',', '.').' EUR';
             } else {
