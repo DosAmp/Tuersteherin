@@ -29,12 +29,12 @@ class Tuersteherin {
 
     private $searchEngines = array(
         '!google' => 'https://www.google.de/search?q=',
-        '!googlepic' => 'https://www.google.de/images?q=',
+        '!googlepic' => 'https://www.google.de/search?tbm=isch&q=',
         '!lmgtfy' => 'http://lmgtfy.com/?q=',
         '!wikipedia' => 'https://de.wikipedia.org/w/index.php?title=Spezial:Suche&search=',
         '!wolfram' => 'https://www.wolframalpha.com/input/?i=',
         '!youtube' => 'https://www.youtube.com/results?search_query=',
-        '!twitter' => 'https://twitter.com/search/realtime?q=',
+        '!twitter' => 'https://twitter.com/search?f=realtime&q=',
     );
 
     function Tuersteherin() {
