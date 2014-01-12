@@ -13,11 +13,11 @@ class Tuersteherin {
     private $SmartIRC;
 
     const Nickname = "Phai";
-    const Realname = "Botviech 2.0 Beta";
+    const Realname = "Botviech 2.1 Beta";
 
     const Server = "irc.rizon.net";
     const Port = 6667;
-    const Channels = '#winhistory';
+    const Channels = "#winhistory";
 
     const IdleTimeout = 600;
 
