@@ -13,7 +13,7 @@ class Tuersteherin {
     private $SmartIRC;
 
     const Nickname = "Phai";
-    const Realname = "Botviech 2.1 Beta";
+    const Realname = "Botviech 2.2 Beta";
 
     const Server = "irc.rizon.net";
     const Port = 6667;
