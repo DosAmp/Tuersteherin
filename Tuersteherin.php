@@ -7,6 +7,7 @@ define("IRC_BOLD", "\002");
 define("IRC_ITALIC", "\026");
 define("IRC_NORMAL", "\017");
 define("IRC_UNDERLINE", "\037");
+define("CHOOSE_SEP", "==SeP==");
 
 class Tuersteherin {
 
@@ -320,8 +321,8 @@ class Tuersteherin {
     }
 
     function Choose(&$irc, &$ircdata) {
-        $question = $this->_message_line($ircdata->message);
-        $qa = explode(" oder ", $this->_message_line($ircdata->message));
+        $question = preg_replace(array('/ oder /', '/, ?/'), CHOOSE_SEP, $this->_message_line($ircdata->message));
+        $qa = explode(CHOOSE_SEP, $question);
         $answer = IRC_BOLD.$qa[mt_rand(0, count($qa)-1)];
         $msg = '<'.$ircdata->nick.'>'." ".$answer;
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
