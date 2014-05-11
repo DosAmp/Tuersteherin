@@ -41,7 +41,7 @@ class Tuersteherin {
         $irc = $this->SmartIRC = &new Net_SmartIRC();
         $irc->setUseSockets(true);
         $irc->setChannelSyncing(true);
-        // $irc->setUserSyncing(true); // +jeix | weil php.exe sacht error
+        $irc->setUserSyncing(true);
         $irc->setAutoReconnect(true);
 
         $irc->setDebug(SMARTIRC_DEBUG_IRCMESSAGES);
