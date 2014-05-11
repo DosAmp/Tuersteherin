@@ -44,8 +44,7 @@ class Tuersteherin {
         $irc->setChannelSyncing(true);
         $irc->setUserSyncing(true);
         $irc->setAutoReconnect(true);
-
-        $irc->setDebug(SMARTIRC_DEBUG_IRCMESSAGES);
+        //$irc->setDebug(SMARTIRC_DEBUG_IRCMESSAGES);
 
         setlocale(LC_ALL, 'de_DE');
         date_default_timezone_set('Europe/Berlin');
