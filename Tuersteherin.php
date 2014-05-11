@@ -13,7 +13,7 @@ class Tuersteherin {
     private $SmartIRC;
 
     const Nickname = "Phai";
-    const Realname = "Botviech 2.2 Beta";
+    const Realname = "Botviech 2.3 Beta";
 
     const Server = "irc.rizon.net";
     const Port = 6667;
@@ -41,7 +41,7 @@ class Tuersteherin {
         $irc = $this->SmartIRC = &new Net_SmartIRC();
         $irc->setUseSockets(true);
         $irc->setChannelSyncing(true);
-        $irc->setUserSyncing(true);
+        // $irc->setUserSyncing(true); // +jeix | weil php.exe sacht error
         $irc->setAutoReconnect(true);
 
         $irc->setDebug(SMARTIRC_DEBUG_IRCMESSAGES);
@@ -66,6 +66,7 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/^(hallo|huhu|hi)\s'.self::Nickname.'/i', $this, 'Huhu');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!toblerone(\s|$)', $this, 'Toblerone');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!decide[1]?(\s|$)', $this, 'EightBall');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!select[1]?(\s|$)', $this, 'select');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!say\s', $this, 'Say');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!sayme\s', $this, 'SayMe');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!popp\s', $this, 'Popp');
@@ -316,6 +317,14 @@ class Tuersteherin {
             $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, 'Link-Titel: '.IRC_UNDERLINE.html_entity_decode($tags['header']));
         }
         fclose($httpSocket);
+    }
+
+        function select(&$irc, &$ircdata) {
+                $question = $this->_message_line($ircdata->message);
+        $qa = explode(" oder ", $this->_message_line($ircdata->message));
+                $answer = IRC_BOLD.$qa[mt_rand(0, count($qa)-1)];
+        $msg = '<'.$ircdata->nick.'>'." ".$answer;
+                $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
     }
 
     function EightBall(&$irc, &$ircdata) {
