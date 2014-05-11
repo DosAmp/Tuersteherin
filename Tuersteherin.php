@@ -1,6 +1,6 @@
 #!/usr/bin/env php
-# vim: set et:ts=4:sw=4
 <?php
+// vim: set et:ts=4:sw=4
 include("SmartIRC.php");
 
 define("IRC_BOLD", "\002");
