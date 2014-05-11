@@ -66,7 +66,7 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/^(hallo|huhu|hi)\s'.self::Nickname.'/i', $this, 'Huhu');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!toblerone(\s|$)', $this, 'Toblerone');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!decide[1]?(\s|$)', $this, 'EightBall');
-        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!select[1]?(\s|$)', $this, 'select');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!choose\s', $this, 'Choose');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!say\s', $this, 'Say');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!sayme\s', $this, 'SayMe');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!popp\s', $this, 'Popp');
@@ -319,12 +319,12 @@ class Tuersteherin {
         fclose($httpSocket);
     }
 
-        function select(&$irc, &$ircdata) {
-                $question = $this->_message_line($ircdata->message);
+    function Choose(&$irc, &$ircdata) {
+        $question = $this->_message_line($ircdata->message);
         $qa = explode(" oder ", $this->_message_line($ircdata->message));
-                $answer = IRC_BOLD.$qa[mt_rand(0, count($qa)-1)];
+        $answer = IRC_BOLD.$qa[mt_rand(0, count($qa)-1)];
         $msg = '<'.$ircdata->nick.'>'." ".$answer;
-                $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+        $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
     }
 
     function EightBall(&$irc, &$ircdata) {
