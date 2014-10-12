@@ -36,6 +36,7 @@ class Tuersteherin {
         '!wolfram' => 'https://www.wolframalpha.com/input/?i=',
         '!youtube' => 'https://www.youtube.com/results?search_query=',
         '!twitter' => 'https://twitter.com/search?f=realtime&q=',
+        '!duck' => 'https://duckduckgo.com?q=',
     );
 
     function Tuersteherin() {
