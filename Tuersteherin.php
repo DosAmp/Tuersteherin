@@ -68,6 +68,7 @@ class Tuersteherin {
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!toblerone(\s|$)', $this, 'Toblerone');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!decide[1]?(\s|$)', $this, 'EightBall');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!choose\s', $this, 'Choose');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!select\s', $this, 'Choose');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!say\s', $this, 'Say');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!sayme\s', $this, 'SayMe');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^!popp\s', $this, 'Popp');
