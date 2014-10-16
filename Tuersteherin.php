@@ -35,7 +35,7 @@ class Tuersteherin {
         '!wikipedia' => 'https://de.wikipedia.org/w/index.php?title=Spezial:Suche&search=',
         '!wolfram' => 'https://www.wolframalpha.com/input/?i=',
         '!youtube' => 'https://www.youtube.com/results?search_query=',
-        '!twitter' => 'https://twitter.com/search?f=realtime&q=',
+        '!twitter' => 'https://twitter.com/search?q=',
         '!duck' => 'https://duckduckgo.com?q=',
     );
 
