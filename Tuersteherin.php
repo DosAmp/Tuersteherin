@@ -323,6 +323,7 @@ class Tuersteherin {
 
     function Choose(&$irc, &$ircdata) {
         $question = preg_replace(array('/ oder /', '/, ?/'), CHOOSE_SEP, $this->_message_line($ircdata->message));
+        $question = preg_replace('/\?$/', '', $question);
         $qa = explode(CHOOSE_SEP, $question);
         $answer = IRC_BOLD.$qa[mt_rand(0, count($qa)-1)];
         $msg = '<'.$ircdata->nick.'>'." ".$answer;
