@@ -8,6 +8,7 @@ define("IRC_ITALIC", "\026");
 define("IRC_NORMAL", "\017");
 define("IRC_UNDERLINE", "\037");
 define("CHOOSE_SEP", "==SeP==");
+define("APPROX_CHF_EUR_CONVRATE", 0.95); // 2015-02-02
 
 class Tuersteherin {
 
@@ -383,7 +384,7 @@ class Tuersteherin {
     }
 
     function CHFtoEUR(&$irc, &$ircdata) {
-        static $convrate = 0.81;
+        static $convrate = APPROX_CHF_EUR_CONVRATE;
         static $lastupdate = -1;
         static $exactrate = FALSE;
 
@@ -400,7 +401,7 @@ class Tuersteherin {
                 $exactrate = TRUE;
             } else {
                 // better an approximated conversation rate than an outdated one
-                $convrate = 0.81;
+                $convrate = APPROX_CHF_EUR_CONVRATE;
                 $exactrate = FALSE;
             }
         }
