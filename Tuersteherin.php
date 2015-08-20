@@ -87,6 +87,7 @@ class Tuersteherin {
 
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '/(https?:\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\-\.]*(\?\S+)?)?)?)/', $this, 'grepURLTitle');
         $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'https?:\/\/(www\.)?youtube\.com\/watch\?v=([\w\_\-]+)', $this, 'printYTInfo');
+        $irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, 'https?:\/\/(www\.)?winhistory-forum\.net\/showthread\.php', $this, 'printWHFUrl');
 
         // without any keywords, we're much better off without this
         //$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $this, 'simpleKeywords');
@@ -544,6 +545,24 @@ class Tuersteherin {
                IRC_BOLD."Länge: ".IRC_NORMAL.$min.':'.$sec." | ".
                IRC_BOLD."Uploader: ".IRC_NORMAL.$author;
         $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, $msg);
+    }
+
+    function printWHFUrl(&$irc, &$ircdata) {
+        preg_match_all('/https?:\/\/(www\.)?winhistory-forum\.net\/showthread\.php\S+/', $ircdata->message, $urls);
+        foreach ($urls[0] as $url) {
+            $url = parse_url($url);
+            parse_str($url['query'], $query_parsed);
+            if (1 === preg_match("/pid([0-9]+)/", $url['fragment'], $fragment)) {
+                $msg = "p".$fragment[1];
+            } else if ($query_parsed['pid'] != null) {
+                $msg = "p".$query_parsed['pid'];
+            } else if ($query_parsed['tid'] != null) {
+                $msg = "t".$query_parsed['tid'];
+            } else {
+                continue;
+            }
+            $irc->message(SMARTIRC_TYPE_CHANNEL, $ircdata->channel, IRC_BOLD."Kurz-URL: ".IRC_NORMAL."http://whf.qsuscs.de/".$msg);
+        }
     }
 
     function PasswordReminder(&$irc, &$ircdata) {
